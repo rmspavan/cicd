@@ -15,12 +15,8 @@ pipeline {
 	  
 	  stage ('Build')  {
 	      steps {
-          
-            dir('cicd'){
-            sh "mvn package"
-          }
-        }
-         
-      }
+                   sh "mvn package"
+                   }
+         }
     }
 }
