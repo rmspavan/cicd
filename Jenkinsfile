@@ -16,7 +16,7 @@ pipeline {
 	  stage ('Build')  {
 	      steps {
           
-            dir('java-source'){
+            dir('cicd'){
             sh "mvn package"
           }
         }
