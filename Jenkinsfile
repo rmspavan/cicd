@@ -19,12 +19,12 @@ pipeline {
                    }
          }
     
-    /* stage ('SonarQube Analysis') {
+    stage ('SonarQube Analysis') {
         steps {
               withSonarQubeEnv('sonar') {
-                 sh 'mvn -U clean install '
+                 sh 'mvn -U clean install sonar:sonar'
 				      }
           }
-      } */
+      }
     }
 }
