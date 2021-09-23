@@ -12,11 +12,17 @@ pipeline {
           checkout([$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'git', url: 'https://github.com/rmspavan/cicd.git']]])
         }
       }
-	  
+
+	  stage ('Clean and Install')  {
+	      steps {
+                   sh "mvn clean install"
+              }
+         }
+    	  
 	  stage ('Build')  {
 	      steps {
                    sh "mvn package"
-                   }
+              }
          }
     
     stage ('SonarQube Analysis') {
