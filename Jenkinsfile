@@ -44,7 +44,31 @@ pipeline {
              timeout: 300
                     )    
               }
-      }    
+         }    
     
+	  stage ('Upload')  {
+	      steps {
+                 rtUpload (
+                    serverID: "Artifactory",
+                    spec: '''{
+                       "files": [
+                         {
+                           "pattern": "*.war",
+                           "target": "webapp-libs-snapshot-local"
+                         }
+                       ]
+                    }''',
+                  ) 
+              }
+         }
+    
+    stage ('Publish build info'){
+        steps{
+            rtPublishBuildInfo(
+                serverId: "Artifactory"
+            )
+        }
     }
+
+  }
 }
