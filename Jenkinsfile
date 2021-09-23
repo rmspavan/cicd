@@ -1,31 +1,29 @@
 pipeline {
   agent any
   tools {
-  
-  maven 'M2_HOME'
-   
-  }
+    maven 'M2_HOME'
+        }
     stages {
 
       stage ('Checkout SCM'){
         steps {
           checkout([$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'git', url: 'https://github.com/rmspavan/cicd.git']]])
-        }
+              }
       }
 
-	  stage ('Clean and Install')  {
+  	  stage ('Clean and Install')  {
 	      steps {
-                   sh "mvn clean install"
+                 sh "mvn clean install"
               }
-         }
+      }
     	  
-	  stage ('Build')  {
+	    stage ('Build')  {
 	      steps {
                    sh "mvn package"
               }
          }
     
-    stage ('SonarQube Analysis') {
+      stage ('SonarQube Analysis') {
         steps {
               withSonarQubeEnv('sonar') {
                  sh 'mvn -U clean install sonar:sonar'
@@ -33,7 +31,7 @@ pipeline {
           }
       }
     
-	  stage ('Artifact')  {
+	    stage ('Artifact')  {
 	      steps {
            rtServer (
              id: "Artifactory",
@@ -44,9 +42,9 @@ pipeline {
              timeout: 300
                     )    
               }
-         }    
+      }    
     
-	  stage ('Upload')  {
+	    stage ('Upload')  {
 	      steps {
                  rtUpload (
                     serverID: "Artifactory",
@@ -56,19 +54,18 @@ pipeline {
                            "pattern": "*.war",
                            "target": "webapp-libs-snapshot-local"
                          }
-                       ]
-                    }''',
-                  ) 
+                                ]
+                              }''',
+                           ) 
               }
-         }
+      }
     
-    stage ('Publish build info'){
+      stage ('Publish build info') {
         steps{
             rtPublishBuildInfo(
                 serverId: "Artifactory"
             )
         }
     }
-
   }
 }
