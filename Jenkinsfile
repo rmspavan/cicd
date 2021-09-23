@@ -1,50 +1,80 @@
-pipeline{
-    agent any
-    tools {
-      maven 'maven3'
-    }
-    environment {
-      DOCKER_TAG = getVersion()
-    }
-    stages{
-        stage('SCM'){
-            steps{
-                git credentialsId: 'github', 
-                    url: 'https://github.com/rmspavan/webapp.git
-            }
-        }
-        
-        stage('Maven Build'){
-            steps{
-                sh "mvn clean package"
-            }
-        }
-        
-        stage('Docker Build'){
-            steps{
-                sh "docker build . -t rmspavan/webapp:${DOCKER_TAG} "
-            }
-        }
-        
-        stage('DockerHub Push'){
-            steps{
-                withCredentials([string(credentialsId: 'docker-hub', variable: 'dockerHubPwd')]) {
-                    sh "docker login -u rmspavan -p ${dockerHubPwd}"
-                }
-                
-                sh "docker push rmspavan/webapp:${DOCKER_TAG} "
-            }
-        }
-        
-        stage('Docker Deploy'){
-            steps{
-              ansiblePlaybook credentialsId: 'dev-server', disableHostKeyChecking: true, extras: "-e DOCKER_TAG=${DOCKER_TAG}", installation: 'ansible', inventory: 'dev.inv', playbook: 'deploy-docker.yml'
-            }
-        }
-    }
-}
+pipeline {
+  agent any
+  tools {
+  
+  maven 'maven'
+   
+  }
+    stages {
 
-def getVersion(){
-    def commitHash = sh label: '', returnStdout: true, script: 'git rev-parse --short HEAD'
-    return commitHash
-}
+      stage ('Checkout SCM'){
+        steps {
+          checkout([$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'git', url: '']]])
+        }
+      }
+	  
+	  stage ('Build')  {
+	      steps {
+          
+            dir('java-source'){
+            sh "mvn package"
+          }
+        }
+         
+      }
+   
+     stage ('SonarQube Analysis') {
+        steps {
+              withSonarQubeEnv('sonar') {
+                
+				dir('java-source'){
+                 sh 'mvn -U clean install sonar:sonar'
+                }
+				
+              }
+            }
+      }
+
+    stage ('Artifactory configuration') {
+            steps {
+                rtServer (
+                    id: "jfrog",
+                    url: "http://18.207.136.250:8082/artifactory",
+                    credentialsId: "jfrog"
+                )
+
+                rtMavenDeployer (
+                    id: "MAVEN_DEPLOYER",
+                    serverId: "jfrog",
+                    releaseRepo: "iwayq-libs-release-local",
+                    snapshotRepo: "iwayq-libs-snapshot-local"
+                )
+
+                rtMavenResolver (
+                    id: "MAVEN_RESOLVER",
+                    serverId: "jfrog",
+                    releaseRepo: "iwayq-libs-release",
+                    snapshotRepo: "iwayq-libs-snapshot"
+                )
+            }
+    }
+
+    stage ('Deploy Artifacts') {
+            steps {
+                rtMavenRun (
+                    tool: "maven", // Tool name from Jenkins configuration
+                    pom: 'java-source/pom.xml',
+                    goals: 'clean install',
+                    deployerId: "MAVEN_DEPLOYER",
+                    resolverId: "MAVEN_RESOLVER"
+                )
+         }
+    }
+
+    stage ('Publish build info') {
+            steps {
+                rtPublishBuildInfo (
+                    serverId: "jfrog"
+             )
+        }
+    }
