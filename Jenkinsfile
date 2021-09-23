@@ -32,5 +32,19 @@ pipeline {
 				      }
           }
       }
+    
+	  stage ('Artifact')  {
+	      steps {
+           rtServer (
+             id: "Artifactory",
+             url: 'http://192.168.1.245:8082/artifactory',
+             username: 'admin',
+             password: 'P@ssw0rd',
+             bypassProxy: true,
+             timeout: 300
+                    )    
+              }
+      }    
+    
     }
 }
