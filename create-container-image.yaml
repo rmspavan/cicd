@@ -3,6 +3,11 @@
 ---
 - hosts: localhost
   tasks: 
+
+  - name: remove artifact
+    shell: rm -rf /root/*.war
+    ignore_errors: yes
+
   - name: Pull .war artifact from Artifactory
     become: true
     get_url:
@@ -11,33 +16,14 @@
       url_username: admin
       url_password: P@ssw0rd
 
-  - name: Rename .war Artifact
-    command: mv webapp-1.0-RELEASE.war webapp.war
-  
-  - name: Pull Tomcat  Container Image
-    docker_image:
-      name: tomcat:latest
-      source: pull
+  - name: remove docker image
+    command: docker rmi 192.168.1.212:5000/webapp
+    ignore_errors: yes
 
   - name: Build image and with build args
-    docker_image:
-      name: webapp`
-      build:
-        path: /root/
-        pull: no
-        args:
-          listen_port: 8080
-      source: build
-
-#  - name: Log into DockerHub
-#    docker_login:
-#     username: rmspavan
-#     password: P2$$w0rd
-
+    command: docker build -t 192.168.1.212:5000/webapp .
+    args:
+      chdir: /root/
     
   - name: Push to docker registry
-    docker_image:
-      name: webapp
-      repository: 192.168.1.212/webapp:1.0
-      push: yes
-      source: local
+    command: docker push 192.168.1.212:5000/webapp
