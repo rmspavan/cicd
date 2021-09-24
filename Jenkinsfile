@@ -65,7 +65,8 @@ pipeline {
             rtPublishBuildInfo(
                 serverId: "Artifactory"
             )
-        }
+          }
+      }    
     
       stage('Copy Dockerfile & Playbook to Ansible Server') {
             
@@ -122,5 +123,4 @@ pipeline {
             }
        }     
     }
-}
 }
