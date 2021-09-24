@@ -66,6 +66,61 @@ pipeline {
                 serverId: "Artifactory"
             )
         }
+    
+    stage('Copy Dockerfile & Playbook to Ansible Server') {
+            
+            steps {
+                  sshagent(['sshkey']) {
+                       
+                        sh "scp -o StrictHostKeyChecking=no Dockerfile root@192.168.1.235:/root/"
+                        sh "scp -o StrictHostKeyChecking=no create-container-image.yaml root@192.168.1.235:/root/"
+                    }
+                }
+            
+        } 
+    stage('Build Container Image') {
+            
+            steps {
+                  sshagent(['sshkey']) {
+                       
+                        sh "ssh -o StrictHostKeyChecking=no root@192.168.1.235 -C \"sudo ansible-playbook create-container-image.yaml\""
+                        
+                    }
+                }
+            
+        } 
+    stage('Copy Deployent & Service Defination to K8s Master') {
+            
+            steps {
+                  sshagent(['sshkey']) {
+                       
+                        sh "scp -o StrictHostKeyChecking=no create-k8s-deployment.yaml root@192.168.1.222:/root/"
+                    }
+                }
+            
+        } 
+
+    stage('Waiting for Approvals') {
+            
+        steps{
+
+				input('Test Completed ? Please provide  Approvals for Prod Release ?')
+			  }
+            
+    }     
+    stage('Deploy Artifacts to Production') {
+            
+            steps {
+                  sshagent(['sshkey']) {
+                       
+                        sh "ssh -o StrictHostKeyChecking=no ec2-user@192.168.1.222 -C \"sudo kubectl delete create-k8s-deployment.yaml\""
+                        sh "ssh -o StrictHostKeyChecking=no ec2-user@192.168.1.222 -C \"sudo kubectl apply -f create-k8s-deployment.yaml\""
+                                            
+                    }
+                }
+            
+        }     
+
     }
   }
 }
