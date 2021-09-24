@@ -101,8 +101,8 @@ pipeline {
             steps {
                   sshagent(['sshkey']) {
                        
-                        sh "ssh -o StrictHostKeyChecking=no ec2-user@192.168.1.222 -C \"sudo kubectl delete deploy webapp\""
-                        sh "ssh -o StrictHostKeyChecking=no ec2-user@192.168.1.222 -C \"sudo kubectl apply -f create-k8s-deployment.yaml\""
+                        sh "ssh -o StrictHostKeyChecking=no root@192.168.1.222 -C \"sudo kubectl delete deploy webapp\""
+                        sh "ssh -o StrictHostKeyChecking=no root@192.168.1.222 -C \"sudo kubectl apply -f create-k8s-deployment.yaml\""
                                             
                   }
             }
