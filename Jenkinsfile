@@ -67,7 +67,7 @@ pipeline {
             )
         }
     
-    stage('Copy Dockerfile & Playbook to Ansible Server') {
+      stage('Copy Dockerfile & Playbook to Ansible Server') {
             
             steps {
                   sshagent(['sshkey']) {
@@ -78,7 +78,8 @@ pipeline {
                 }
             
         } 
-    stage('Build Container Image') {
+
+      stage('Build Container Image') {
             
             steps {
                   sshagent(['sshkey']) {
@@ -89,7 +90,8 @@ pipeline {
                 }
             
         } 
-    stage('Copy Deployent & Service Defination to K8s Master') {
+      
+      stage('Copy Deployent & Service Defination to K8s Master') {
             
             steps {
                   sshagent(['sshkey']) {
@@ -100,15 +102,15 @@ pipeline {
             
         } 
 
-    stage('Waiting for Approvals') {
+      stage('Waiting for Approvals') {
             
-        steps{
+          steps{
 
-				input('Test Completed ? Please provide  Approvals for Prod Release ?')
-			  }
-            
-    }     
-    stage('Deploy Artifacts to Production') {
+			        	input('Test Completed ? Please provide  Approvals for Prod Release ?')
+			         }
+      }
+
+      stage('Deploy Artifacts to Production') {
             
             steps {
                   sshagent(['sshkey']) {
@@ -121,6 +123,6 @@ pipeline {
             
         }     
 
-    }
+    
   }
 }
