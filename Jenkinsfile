@@ -10,15 +10,10 @@ pipeline {
           checkout([$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'git', url: 'https://github.com/rmspavan/cicd.git']]])
               }
       }
-
-  	  stage ('Clean and Install')  {
-	      steps {
-                 sh "mvn clean install"
-              }
-      }
     	  
 	    stage ('Build')  {
 	      steps {
+                   sh "mvn clean install"
                    sh "mvn package"
               }
          }
@@ -68,13 +63,14 @@ pipeline {
           }
       }    
     
-      stage('Copy Dockerfile & Playbook to Ansible Server') {
+      stage('Copy') {
             
             steps {
                   sshagent(['sshkey']) {
                        
                         sh "scp -o StrictHostKeyChecking=no Dockerfile root@192.168.1.235:/root/"
                         sh "scp -o StrictHostKeyChecking=no create-container-image.yaml root@192.168.1.235:/root/"
+                        sh "scp -o StrictHostKeyChecking=no create-k8s-deployment.yaml root@192.168.1.222:/root/"
                     }
                 }
             
@@ -92,17 +88,6 @@ pipeline {
             
         } 
       
-      stage('Copy Deployent & Service Defination to K8s Master') {
-            
-            steps {
-                  sshagent(['sshkey']) {
-                       
-                        sh "scp -o StrictHostKeyChecking=no create-k8s-deployment.yaml root@192.168.1.222:/root/"
-                    }
-                }
-            
-        } 
-
       stage('Waiting for Approvals') {
             
           steps{
