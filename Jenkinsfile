@@ -23,13 +23,13 @@ pipeline {
               }
          }
     
-/*       stage ('SonarQube Analysis') {
+      stage ('SonarQube Analysis') {
         steps {
               withSonarQubeEnv('sonar') {
                  sh 'mvn -U clean install sonar:sonar'
 				      }
           }
-      } */
+      }
     
 	    stage ('Artifact')  {
 	      steps {
